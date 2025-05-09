@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Love Message Puzzle ❤️</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive;
+        text-align: center;
+        background-color: #ffe6f0;
+        color: #d81b60;
+        padding: 2em;
+      }
+
+      h1 {
+        margin-bottom: 1em;
+      }
+
+      .puzzle-board {
+        display: grid;
+        grid-template-columns: repeat(2, 150px);
+        grid-template-rows: repeat(2, 150px);
+        gap: 10px;
+        justify-content: center;
+        margin: auto;
+        border: 4px dashed #f48fb1;
+        padding: 10px;
+        background-color: #fff0f5;
+      }
+
+      .dropzone {
+        width: 150px;
+        height: 150px;
+        border: 2px dashed #f8bbd0;
+        position: relative;
+        background-color: #fff;
+      }
+
+      .piece {
+        width: 150px;
+        height: 150px;
+        position: absolute;
+        background-image: url("images/heart.jpg");
+        background-size: 300px 300px;
+        cursor: grab;
+        border-radius: 10px;
+        z-index: 2;
+      }
+
+      /* Background crop for each piece */
+      .piece[data-index="0"] {
+        background-position: 0 0;
+      }
+      .piece[data-index="1"] {
+        background-position: -150px 0;
+      }
+      .piece[data-index="2"] {
+        background-position: 0 -150px;
+      }
+      .piece[data-index="3"] {
+        background-position: -150px -150px;
+      }
+
+      .message {
+        font-size: 1.8em;
+        margin-top: 2em;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+      }
+
+      .message.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧩 Love Message Puzzle</h1>
+
+    <div class="puzzle-board" id="board">
+      <div class="dropzone" data-correct="0"></div>
+      <div class="dropzone" data-correct="1"></div>
+      <div class="dropzone" data-correct="2"></div>
+      <div class="dropzone" data-correct="3"></div>
+    </div>
+
+    <div id="pieces" style="margin-top: 2em">
+      <!-- Puzzle pieces shuffled -->
+    </div>
+
+    <div class="message" id="message">
+      You complete me ❤️ </br>
+      I love you babe
+    </div>
+
+    <script>
+      const piecesData = [0, 1, 2, 3];
+      const pieceContainer = document.getElementById("pieces");
+      const board = document.getElementById("board");
+      const message = document.getElementById("message");
+
+      function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+      }
+
+      function createPiece(index) {
+        const div = document.createElement("div");
+        div.className = "piece";
+        div.draggable = true;
+        div.dataset.index = index;
+        div.id = "piece-" + index;
+
+        div.addEventListener("dragstart", (e) => {
+          e.dataTransfer.setData("text/plain", index);
+        });
+
+        return div;
+      }
+
+      function checkCorrect() {
+        const zones = document.querySelectorAll(".dropzone");
+        let correct = 0;
+        zones.forEach((zone, i) => {
+          const piece = zone.querySelector(".piece");
+          if (piece && piece.dataset.index == zone.dataset.correct) {
+            correct++;
+          }
+        });
+
+        if (correct === 4) {
+          message.classList.add("show");
+        }
+      }
+
+      function setup() {
+        shuffle(piecesData).forEach((i) => {
+          const piece = createPiece(i);
+          piece.style.position = "static";
+          piece.style.margin = "10px";
+          pieceContainer.appendChild(piece);
+        });
+
+        const zones = document.querySelectorAll(".dropzone");
+        zones.forEach((zone) => {
+          zone.addEventListener("dragover", (e) => e.preventDefault());
+          zone.addEventListener("drop", (e) => {
+            e.preventDefault();
+            const index = e.dataTransfer.getData("text/plain");
+            const draggedPiece = document.getElementById("piece-" + index);
+            // remove previous if any
+            zone.innerHTML = "";
+            zone.appendChild(draggedPiece);
+            draggedPiece.style.position = "absolute";
+            draggedPiece.style.top = "0";
+            draggedPiece.style.left = "0";
+            checkCorrect();
+          });
+        });
+      }
+
+      setup();
+    </script>
+  </body>
+</html>
