@@ -1,163 +1,208 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Love Message Puzzle ❤️</title>
-    <style>
-      body {
-        font-family: "Comic Sans MS", cursive;
-        text-align: center;
-        background-color: #ffe6f0;
-        color: #d81b60;
-        padding: 2em;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <title>Love Message Puzzle ❤️</title>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background-color: #ffe6f0;
+      text-align: center;
+      color: #d81b60;
+      padding: 2em;
+      user-select: none;
+    }
 
-      h1 {
-        margin-bottom: 1em;
-      }
+    h1 {
+      margin-bottom: 1em;
+    }
 
-      .puzzle-board {
-        display: grid;
-        grid-template-columns: repeat(2, 150px);
-        grid-template-rows: repeat(2, 150px);
-        gap: 10px;
-        justify-content: center;
-        margin: auto;
-        border: 4px dashed #f48fb1;
-        padding: 10px;
-        background-color: #fff0f5;
-      }
+    .puzzle-board {
+      display: grid;
+      grid-template-columns: repeat(2, 150px);
+      grid-template-rows: repeat(2, 150px);
+      gap: 10px;
+      justify-content: center;
+      margin: auto;
+      border: 4px dashed #f48fb1;
+      background-color: #fff0f5;
+      padding: 10px;
+    }
 
-      .dropzone {
-        width: 150px;
-        height: 150px;
-        border: 2px dashed #f8bbd0;
-        position: relative;
-        background-color: #fff;
-      }
+    .dropzone {
+      width: 150px;
+      height: 150px;
+      background-color: #fff;
+      border: 2px dashed #f8bbd0;
+      position: relative;
+    }
 
-      .piece {
-        width: 150px;
-        height: 150px;
-        position: absolute;
-        background-image: url("heart.jpg");
-        background-size: 300px 300px;
-        cursor: grab;
-        border-radius: 10px;
-        z-index: 2;
-      }
+    .piece {
+      width: 150px;
+      height: 150px;
+      background-image: url('heart.jpg');
+      background-size: 300px 300px;
+      position: absolute;
+      z-index: 10;
+      touch-action: none;
+      border-radius: 10px;
+      cursor: grab;
+      transition: transform 0.2s ease;
+    }
 
-      /* Background crop for each piece */
-      .piece[data-index="0"] {
-        background-position: 0 0;
-      }
-      .piece[data-index="1"] {
-        background-position: -150px 0;
-      }
-      .piece[data-index="2"] {
-        background-position: 0 -150px;
-      }
-      .piece[data-index="3"] {
-        background-position: -150px -150px;
-      }
+    .piece[data-index="0"] { background-position: 0 0; }
+    .piece[data-index="1"] { background-position: -150px 0; }
+    .piece[data-index="2"] { background-position: 0 -150px; }
+    .piece[data-index="3"] { background-position: -150px -150px; }
 
-      .message {
-        font-size: 1.8em;
-        margin-top: 2em;
-        opacity: 0;
-        transition: opacity 1s ease-in-out;
-      }
+    #pieces {
+      margin-top: 2em;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
 
-      .message.show {
-        opacity: 1;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>🧩 Love Message Puzzle</h1>
+    .message {
+      font-size: 1.8em;
+      margin-top: 2em;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
 
-    <div class="puzzle-board" id="board">
-      <div class="dropzone" data-correct="0"></div>
-      <div class="dropzone" data-correct="1"></div>
-      <div class="dropzone" data-correct="2"></div>
-      <div class="dropzone" data-correct="3"></div>
-    </div>
+    .message.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧩 Love Message Puzzle</h1>
 
-    <div id="pieces" style="margin-top: 2em">
-      <!-- Puzzle pieces shuffled -->
-    </div>
+  <div class="puzzle-board" id="board">
+    <div class="dropzone" data-correct="0"></div>
+    <div class="dropzone" data-correct="1"></div>
+    <div class="dropzone" data-correct="2"></div>
+    <div class="dropzone" data-correct="3"></div>
+  </div>
 
-    <div class="message" id="message">
-      You complete me ❤️ </br>
-      I love you babe
-    </div>
+  <div id="pieces"></div>
 
-    <script>
-      const piecesData = [0, 1, 2, 3];
-      const pieceContainer = document.getElementById("pieces");
-      const board = document.getElementById("board");
-      const message = document.getElementById("message");
+  <div class="message" id="message">You complete me ❤️</div>
 
-      function shuffle(array) {
-        return array.sort(() => Math.random() - 0.5);
-      }
+  <script>
+    const piecesData = [0, 1, 2, 3];
+    const pieceContainer = document.getElementById('pieces');
+    const board = document.getElementById('board');
+    const message = document.getElementById('message');
+    const dropzones = Array.from(document.querySelectorAll('.dropzone'));
 
-      function createPiece(index) {
-        const div = document.createElement("div");
-        div.className = "piece";
-        div.draggable = true;
-        div.dataset.index = index;
-        div.id = "piece-" + index;
+    function shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
+    }
 
-        div.addEventListener("dragstart", (e) => {
-          e.dataTransfer.setData("text/plain", index);
+    function createPiece(index) {
+      const piece = document.createElement('div');
+      piece.className = 'piece';
+      piece.dataset.index = index;
+      piece.id = 'piece-' + index;
+      piece.style.backgroundPosition = {
+        0: '0 0',
+        1: '-150px 0',
+        2: '0 -150px',
+        3: '-150px -150px'
+      }[index];
+
+      // Desktop Drag
+      piece.draggable = true;
+      piece.addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', index);
+      });
+
+      // Touch
+      let offsetX, offsetY;
+
+      piece.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        const rect = piece.getBoundingClientRect();
+        offsetX = touch.clientX - rect.left;
+        offsetY = touch.clientY - rect.top;
+        piece.style.zIndex = 100;
+      });
+
+      piece.addEventListener('touchmove', (e) => {
+        const touch = e.touches[0];
+        piece.style.left = (touch.clientX - offsetX) + 'px';
+        piece.style.top = (touch.clientY - offsetY + window.scrollY) + 'px';
+      });
+
+      piece.addEventListener('touchend', (e) => {
+        const touch = e.changedTouches[0];
+        const dropzone = dropzones.find(z => {
+          const rect = z.getBoundingClientRect();
+          return (
+            touch.clientX >= rect.left &&
+            touch.clientX <= rect.right &&
+            touch.clientY >= rect.top &&
+            touch.clientY <= rect.bottom
+          );
         });
 
-        return div;
-      }
-
-      function checkCorrect() {
-        const zones = document.querySelectorAll(".dropzone");
-        let correct = 0;
-        zones.forEach((zone, i) => {
-          const piece = zone.querySelector(".piece");
-          if (piece && piece.dataset.index == zone.dataset.correct) {
-            correct++;
-          }
-        });
-
-        if (correct === 4) {
-          message.classList.add("show");
-        }
-      }
-
-      function setup() {
-        shuffle(piecesData).forEach((i) => {
-          const piece = createPiece(i);
-          piece.style.position = "static";
-          piece.style.margin = "10px";
+        if (dropzone) {
+          dropzone.innerHTML = '';
+          dropzone.appendChild(piece);
+          piece.style.position = 'absolute';
+          piece.style.top = '0';
+          piece.style.left = '0';
+          piece.style.zIndex = 10;
+        } else {
+          // return to bottom if dropped outside
           pieceContainer.appendChild(piece);
-        });
+          piece.style.position = 'static';
+        }
 
-        const zones = document.querySelectorAll(".dropzone");
-        zones.forEach((zone) => {
-          zone.addEventListener("dragover", (e) => e.preventDefault());
-          zone.addEventListener("drop", (e) => {
-            e.preventDefault();
-            const index = e.dataTransfer.getData("text/plain");
-            const draggedPiece = document.getElementById("piece-" + index);
-            // remove previous if any
-            zone.innerHTML = "";
-            zone.appendChild(draggedPiece);
-            draggedPiece.style.position = "absolute";
-            draggedPiece.style.top = "0";
-            draggedPiece.style.left = "0";
-            checkCorrect();
-          });
-        });
+        checkCorrect();
+      });
+
+      return piece;
+    }
+
+    function checkCorrect() {
+      let correct = 0;
+      dropzones.forEach((zone, i) => {
+        const piece = zone.querySelector('.piece');
+        if (piece && piece.dataset.index == zone.dataset.correct) {
+          correct++;
+        }
+      });
+      if (correct === 4) {
+        message.classList.add('show');
       }
+    }
 
-      setup();
-    </script>
-  </body>
+    function setup() {
+      shuffle(piecesData).forEach(i => {
+        const piece = createPiece(i);
+        piece.style.position = 'static';
+        pieceContainer.appendChild(piece);
+      });
+
+      dropzones.forEach(zone => {
+        zone.addEventListener('dragover', e => e.preventDefault());
+        zone.addEventListener('drop', e => {
+          e.preventDefault();
+          const index = e.dataTransfer.getData('text/plain');
+          const piece = document.getElementById('piece-' + index);
+          zone.innerHTML = '';
+          zone.appendChild(piece);
+          piece.style.position = 'absolute';
+          piece.style.top = '0';
+          piece.style.left = '0';
+          checkCorrect();
+        });
+      });
+    }
+
+    setup();
+  </script>
+</body>
 </html>
